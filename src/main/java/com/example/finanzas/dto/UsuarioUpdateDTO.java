@@ -2,8 +2,7 @@ package com.example.finanzas.dto;
 
 import jakarta.validation.constraints.*;
 
-public record UsuarioDTO(
+public record UsuarioUpdateDTO(
         @Email @NotNull @Size(max = 120) String email,
-        @NotNull @Size(max = 120) String nombre,
-        @NotNull @Size(min = 6, max = 255) String password
+        @NotNull @Size(max = 120) String nombre
 ) {}

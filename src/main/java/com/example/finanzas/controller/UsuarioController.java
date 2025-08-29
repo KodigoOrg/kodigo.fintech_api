@@ -1,6 +1,7 @@
 package com.example.finanzas.controller;
 
 import com.example.finanzas.dto.UsuarioDTO;
+import com.example.finanzas.dto.UsuarioUpdateDTO;
 import com.example.finanzas.entity.Usuario;
 import com.example.finanzas.repository.UsuarioRepository;
 import org.springframework.http.*;
@@ -23,6 +24,8 @@ public class UsuarioController {
         Usuario usuario = new Usuario();
         usuario.setEmail(dto.email());
         usuario.setNombre(dto.nombre());
+        usuario.setPassword(dto.password());
+        usuario.setRole(Usuario.Role.USER);
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioRepository.save(usuario));
     }
 
@@ -39,7 +42,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Usuario> update(@PathVariable UUID id, @Valid @RequestBody UsuarioDTO dto) {
+    public ResponseEntity<Usuario> update(@PathVariable UUID id, @Valid @RequestBody UsuarioUpdateDTO dto) {
         return usuarioRepository.findById(id).map(u -> {
             u.setEmail(dto.email());
             u.setNombre(dto.nombre());
