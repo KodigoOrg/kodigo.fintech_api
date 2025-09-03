@@ -1,0 +1,405 @@
+@startuml Diagrama de Clases - Aplicación de Finanzas
+
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 10
+skinparam classFontName Arial
+skinparam packageStyle rectangle
+
+package "Entidades" {
+    class Usuario {
+        -UUID id
+        -String email
+        -String nombre
+        -String password
+        -Role role
+        -LocalDateTime creadoEn
+        --
+        +getId(): UUID
+        +getEmail(): String
+        +setEmail(String): void
+        +getNombre(): String
+        +setNombre(String): void
+        +getPassword(): String
+        +setPassword(String): void
+        +getRole(): Role
+        +setRole(Role): void
+        +getCreadoEn(): LocalDateTime
+        +getAuthorities(): Collection<GrantedAuthority>
+        +getUsername(): String
+        +isAccountNonExpired(): boolean
+        +isAccountNonLocked(): boolean
+        +isCredentialsNonExpired(): boolean
+        +isEnabled(): boolean
+    }
+
+    class Movimiento {
+        -UUID id
+        -Usuario usuario
+        -Categoria categoria
+        -TipoMov tipo
+        -BigDecimal monto
+        -String descripcion
+        -LocalDate ocurridoEn
+        -LocalDateTime creadoEn
+        -LocalDateTime actualizadoEn
+        --
+        +getId(): UUID
+        +getUsuario(): Usuario
+        +setUsuario(Usuario): void
+        +getCategoria(): Categoria
+        +setCategoria(Categoria): void
+        +getTipo(): TipoMov
+        +setTipo(TipoMov): void
+        +getMonto(): BigDecimal
+        +setMonto(BigDecimal): void
+        +getDescripcion(): String
+        +setDescripcion(String): void
+        +getOcurridoEn(): LocalDate
+        +setOcurridoEn(LocalDate): void
+        +getCreadoEn(): LocalDateTime
+        +getActualizadoEn(): LocalDateTime
+        +setActualizadoEn(LocalDateTime): void
+    }
+
+    class Categoria {
+        -UUID id
+        -String nombre
+        -TipoMov tipo
+        --
+        +getId(): UUID
+        +getNombre(): String
+        +setNombre(String): void
+        +getTipo(): TipoMov
+        +setTipo(TipoMov): void
+    }
+
+    class Presupuesto {
+        -UUID id
+        -Usuario usuario
+        -Categoria categoria
+        -String periodo
+        -BigDecimal monto
+        -LocalDateTime creadoEn
+        --
+        +getId(): UUID
+        +getUsuario(): Usuario
+        +setUsuario(Usuario): void
+        +getCategoria(): Categoria
+        +setCategoria(Categoria): void
+        +getPeriodo(): String
+        +setPeriodo(String): void
+        +getMonto(): BigDecimal
+        +setMonto(BigDecimal): void
+    }
+
+    class Alerta {
+        -UUID id
+        -Presupuesto presupuesto
+        -LocalDateTime generadoEn
+        -String mensaje
+        -BigDecimal sobrepeso
+        -Boolean atendido
+        --
+        +getId(): UUID
+        +getPresupuesto(): Presupuesto
+        +setPresupuesto(Presupuesto): void
+        +getGeneradoEn(): LocalDateTime
+        +getMensaje(): String
+        +setMensaje(String): void
+        +getSobrepeso(): BigDecimal
+        +setSobrepeso(BigDecimal): void
+        +getAtendido(): Boolean
+        +setAtendido(Boolean): void
+    }
+
+    enum TipoMov {
+        INGRESO
+        EGRESO
+        IMPUESTO
+    }
+
+    enum Role {
+        USER
+        ADMIN
+    }
+}
+
+package "DTOs" {
+    class UsuarioDTO {
+        -String email
+        -String nombre
+        -String password
+    }
+
+    class LoginDTO {
+        -String email
+        -String password
+    }
+
+    class AuthResponseDTO {
+        -String token
+    }
+
+    class MovimientoDTO {
+        -UUID usuarioId
+        -UUID categoriaId
+        -TipoMov tipo
+        -BigDecimal monto
+        -String descripcion
+        -LocalDate ocurridoEn
+    }
+
+    class CategoriaDTO {
+        -String nombre
+        -TipoMov tipo
+    }
+
+    class PresupuestoDTO {
+        -UUID categoriaId
+        -String periodo
+        -BigDecimal monto
+    }
+
+    class AlertaDTO {
+        -UUID presupuestoId
+        -String mensaje
+        -BigDecimal sobrepeso
+        -Boolean atendido
+    }
+
+    class UsuarioUpdateDTO {
+        -String nombre
+        -String email
+    }
+}
+
+package "Repositorios" {
+    interface UsuarioRepository {
+        +findById(UUID): Optional<Usuario>
+        +findByEmail(String): Optional<Usuario>
+        +save(Usuario): Usuario
+        +deleteById(UUID): void
+        +existsById(UUID): boolean
+    }
+
+    interface MovimientoRepository {
+        +findById(UUID): Optional<Movimiento>
+        +findAll(): List<Movimiento>
+        +save(Movimiento): Movimiento
+        +deleteById(UUID): void
+        +existsById(UUID): boolean
+    }
+
+    interface CategoriaRepository {
+        +findById(UUID): Optional<Categoria>
+        +findAll(): List<Categoria>
+        +save(Categoria): Categoria
+        +deleteById(UUID): void
+        +existsById(UUID): boolean
+    }
+
+    interface PresupuestoRepository {
+        +findById(UUID): Optional<Presupuesto>
+        +findAll(): List<Presupuesto>
+        +save(Presupuesto): Presupuesto
+        +deleteById(UUID): void
+        +existsById(UUID): boolean
+    }
+
+    interface AlertaRepository {
+        +findById(UUID): Optional<Alerta>
+        +findAll(): List<Alerta>
+        +save(Alerta): Alerta
+        +deleteById(UUID): void
+        +existsById(UUID): boolean
+    }
+}
+
+package "Controladores" {
+    class UsuarioController {
+        -UsuarioRepository usuarioRepository
+        --
+        +create(UsuarioDTO): ResponseEntity<Usuario>
+        +list(): ResponseEntity<List<Usuario>>
+        +get(UUID): ResponseEntity<Usuario>
+        +update(UUID, UsuarioUpdateDTO): ResponseEntity<Usuario>
+        +delete(UUID): ResponseEntity<Void>
+    }
+
+    class AuthController {
+        -AuthenticationService authenticationService
+        --
+        +login(LoginDTO): ResponseEntity<AuthResponseDTO>
+        +register(UsuarioDTO): ResponseEntity<AuthResponseDTO>
+    }
+
+    class MovimientoController {
+        -MovimientoRepository movimientoRepository
+        -UsuarioRepository usuarioRepository
+        -CategoriaRepository categoriaRepository
+        --
+        +create(MovimientoDTO): ResponseEntity<Movimiento>
+        +list(): ResponseEntity<List<Movimiento>>
+        +get(UUID): ResponseEntity<Movimiento>
+        +update(UUID, MovimientoDTO): ResponseEntity<Movimiento>
+        +delete(UUID): ResponseEntity<Void>
+    }
+
+    class CategoriaController {
+        -CategoriaRepository categoriaRepository
+        --
+        +create(CategoriaDTO): ResponseEntity<Categoria>
+        +list(): ResponseEntity<List<Categoria>>
+        +get(UUID): ResponseEntity<Categoria>
+        +update(UUID, CategoriaDTO): ResponseEntity<Categoria>
+        +delete(UUID): ResponseEntity<Void>
+    }
+
+    class PresupuestoController {
+        -PresupuestoRepository presupuestoRepository
+        -UsuarioRepository usuarioRepository
+        -CategoriaRepository categoriaRepository
+        --
+        +create(PresupuestoDTO): ResponseEntity<Presupuesto>
+        +list(): ResponseEntity<List<Presupuesto>>
+        +get(UUID): ResponseEntity<Presupuesto>
+        +update(UUID, PresupuestoDTO): ResponseEntity<Presupuesto>
+        +delete(UUID): ResponseEntity<Void>
+    }
+
+    class AlertaController {
+        -AlertaRepository alertaRepository
+        -PresupuestoRepository presupuestoRepository
+        --
+        +create(AlertaDTO): ResponseEntity<Alerta>
+        +list(): ResponseEntity<List<Alerta>>
+        +get(UUID): ResponseEntity<Alerta>
+        +update(UUID, AlertaDTO): ResponseEntity<Alerta>
+        +delete(UUID): ResponseEntity<Void>
+    }
+}
+
+package "Servicios" {
+    class JwtService {
+        -String secretKey
+        -long jwtExpiration
+        --
+        +extractUsername(String): String
+        +extractClaim(String, Function): T
+        +generateToken(UserDetails): String
+        +generateToken(Map, UserDetails): String
+        +isTokenValid(String, UserDetails): boolean
+        -buildToken(Map, UserDetails, long): String
+        -isTokenExpired(String): boolean
+        -extractExpiration(String): Date
+        -extractAllClaims(String): Claims
+        -getSignInKey(): Key
+    }
+
+    class AuthenticationService {
+        -UsuarioRepository usuarioRepository
+        -JwtService jwtService
+        -PasswordEncoder passwordEncoder
+        --
+        +authenticate(LoginDTO): AuthResponseDTO
+        +register(UsuarioDTO): AuthResponseDTO
+        -generateToken(Usuario): String
+    }
+
+    class CustomUserDetailsService {
+        -UsuarioRepository usuarioRepository
+        --
+        +loadUserByUsername(String): UserDetails
+    }
+}
+
+package "Configuración" {
+    class SecurityConfig {
+        -JwtAuthenticationFilter jwtAuthFilter
+        -CustomUserDetailsService userDetailsService
+        --
+        +configure(HttpSecurity): void
+        +configure(AuthenticationManagerBuilder): void
+        +authenticationProvider(): AuthenticationProvider
+        +authenticationManager(AuthenticationConfiguration): AuthenticationManager
+        +passwordEncoder(): PasswordEncoder
+    }
+
+    class JwtAuthenticationFilter {
+        -JwtService jwtService
+        -CustomUserDetailsService userDetailsService
+        --
+        +doFilterInternal(HttpServletRequest, HttpServletResponse, FilterChain): void
+        -getJwtFromRequest(HttpServletRequest): String
+        -getUsernameFromToken(String): String
+    }
+
+    class CorsConfig {
+        +corsConfigurationSource(): CorsConfigurationSource
+    }
+}
+
+package "Excepciones" {
+    class GlobalExceptionHandler {
+        +handleEntityNotFoundException(EntityNotFoundException): ResponseEntity<Map>
+        +handleValidationException(MethodArgumentNotValidException): ResponseEntity<Map>
+        +handleGenericException(Exception): ResponseEntity<Map>
+    }
+}
+
+' Relaciones entre entidades
+Usuario ||--o{ Movimiento : "tiene"
+Usuario ||--o{ Presupuesto : "tiene"
+Categoria ||--o{ Movimiento : "categoriza"
+Categoria ||--o{ Presupuesto : "categoriza"
+Presupuesto ||--o{ Alerta : "genera"
+
+' Relaciones de implementación
+Usuario ..|> UserDetails : implements
+UsuarioRepository ..|> JpaRepository : extends
+MovimientoRepository ..|> JpaRepository : extends
+CategoriaRepository ..|> JpaRepository : extends
+PresupuestoRepository ..|> JpaRepository : extends
+AlertaRepository ..|> JpaRepository : extends
+
+' Relaciones de composición - Controladores
+UsuarioController --> UsuarioRepository : uses
+AuthController --> AuthenticationService : uses
+MovimientoController --> MovimientoRepository : uses
+MovimientoController --> UsuarioRepository : uses
+MovimientoController --> CategoriaRepository : uses
+CategoriaController --> CategoriaRepository : uses
+PresupuestoController --> PresupuestoRepository : uses
+PresupuestoController --> UsuarioRepository : uses
+PresupuestoController --> CategoriaRepository : uses
+AlertaController --> AlertaRepository : uses
+AlertaController --> PresupuestoRepository : uses
+
+' Relaciones de servicios
+AuthenticationService --> UsuarioRepository : uses
+AuthenticationService --> JwtService : uses
+CustomUserDetailsService --> UsuarioRepository : uses
+SecurityConfig --> JwtAuthenticationFilter : uses
+SecurityConfig --> CustomUserDetailsService : uses
+JwtAuthenticationFilter --> JwtService : uses
+JwtAuthenticationFilter --> CustomUserDetailsService : uses
+
+' Relaciones de enumeraciones
+Usuario --> Role : uses
+Movimiento --> TipoMov : uses
+Categoria --> TipoMov : uses
+
+' Relaciones de DTOs
+UsuarioController --> UsuarioDTO : uses
+UsuarioController --> UsuarioUpdateDTO : uses
+AuthController --> LoginDTO : uses
+AuthController --> UsuarioDTO : uses
+AuthController --> AuthResponseDTO : uses
+MovimientoController --> MovimientoDTO : uses
+CategoriaController --> CategoriaDTO : uses
+PresupuestoController --> PresupuestoDTO : uses
+AlertaController --> AlertaDTO : uses
+
+@enduml
+
