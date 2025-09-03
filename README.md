@@ -91,3 +91,4 @@ La entidad Usuario incluye:
 - BCrypt para encriptación
 - PostgreSQL
 - JPA/Hibernate
+

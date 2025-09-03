@@ -69,3 +69,4 @@ curl -X PUT http://localhost:8080/api/usuarios/{id} \
 2. Reemplaza `eyJhbGciOiJIUzI1NiJ9...` con el token JWT real obtenido del login/registro
 3. El token tiene una duración de 24 horas
 4. Las contraseñas se encriptan automáticamente con BCrypt
+
